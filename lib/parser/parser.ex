@@ -1,16 +1,14 @@
 defmodule Parser do
 
-  def some_method(opts \\ [])
+  @doc """
+  Will extract a list of all urls within html
 
-  def some_method(opts) when opts == [] do
-    {:ok}
-  end
-
-  def some_method(opts) do
-    {:ok, [opts]}
-  end
-
-  defp private_method do
-    {:ok}
+  iex> Explore.Parser('<body><a href="google.com"><div><a href="facebook.com"</div></body>')
+  ["google.com", "facebook.com"] 
+  """
+  def extract_urls(html) do
+    html
+    |> Floki.find("a")
+    |> Floki.attribute("href")
   end
 end
