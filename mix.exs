@@ -22,7 +22,7 @@ defmodule Explore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      { :floki, "~> 0.20.0" }
+      { :floki, "~> 0.20.0" },
       { :httpoison, "~> 1.4" }
     ]
   end
