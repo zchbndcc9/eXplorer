@@ -17,6 +17,7 @@ defmodule Explore.Parser do
   Extracts a list of unique links within html and return the list in alphebetical order
 
   iex> Explore.Parser.extract_unique_urls("<body><a href=\"google.com\"><a href=\"google.com\"><body>")
+  ["google.com"]
   """
   def extract_unique_urls(html) do
     html

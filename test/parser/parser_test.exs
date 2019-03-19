@@ -20,7 +20,7 @@ defmodule ParserTest do
     end
   end
   
-  describe "Extracting indexes when" do
+  describe "Extracting indexes without stemming when" do
     test "basic html" do
       html = """
       <body>
@@ -61,6 +61,50 @@ defmodule ParserTest do
 
       expected = ["goes", "hello", "is" ,"jim", "my", "name", "there", "zach"]
       assert P.extract_indexes(html, stem: false) == expected 
+    end
+  end
+
+  describe "Extracting indexes with stemming when" do
+    test "basic html" do
+      html = """
+      <body>
+        <h1>hello there my name is Zach</h1>
+        <div>
+          <p>There goes Jim</p>
+        </div>
+      </body>
+      """
+
+      expected = ["goe", "hello", "is", "jim", "my", "name", "there", "zach"]
+      assert P.extract_indexes(html) == expected 
+    end
+
+    test "basic html with unique indexes" do
+      html = """
+      <body>
+        <h1>hello there my name is Zach</h1>
+        <div>
+          <p>There goes my name is Zach Jim</p>
+        </div>
+      </body>
+      """ 
+      
+      expected = ["goe", "hello", "is", "jim", "my", "name", "there", "zach"]
+      assert P.extract_indexes(html) == expected 
+    end
+
+    test "normalize text" do
+      html = """
+      <body>
+       <h1>heLLo there my name is Zach</h1>
+        <div>
+          <p>THERE goEs Jim</p>
+        </div>
+      </body>
+      """ 
+
+      expected = ["goe", "hello", "is", "jim", "my", "name", "there", "zach"]
+      assert P.extract_indexes(html) == expected 
     end
   end
 end
