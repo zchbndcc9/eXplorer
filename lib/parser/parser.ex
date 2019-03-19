@@ -25,14 +25,20 @@ defmodule Explore.Parser do
   end
 
   @doc """
-  Extracts all indexes with html and returns the list in alphebetical order
+  Extracts all indexes with html and returns the list of stemmed words in alphebetical order
+
+  By default the function will stem the words, but a `stem` flag can be supplied in order to prevent the words from being stemmed
   """
-  def extract_indexes(html) do
+  def extract_indexes(html, opts \\ [stem: true]) do
     html
     |> Floki.text(sep: " ")
     |> String.split(" ")
     |> Enum.map(fn term -> String.downcase(term) end)
+    |> stem_words(opts)
     |> Enum.uniq()
     |> Enum.sort()
   end
+
+  def stem_words(html, stem: true), do: Stemmer.stem(html)
+  def stem_words(html, _),          do: html
 end

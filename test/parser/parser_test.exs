@@ -32,7 +32,7 @@ defmodule ParserTest do
       """
 
       expected = ["goes", "hello", "is", "jim", "my", "name", "there", "zach"]
-      assert P.extract_indexes(html) == expected 
+      assert P.extract_indexes(html, stem: false) == expected 
     end
 
     test "basic html with unique indexes" do
@@ -46,7 +46,7 @@ defmodule ParserTest do
       """ 
       
       expected = ["goes", "hello", "is", "jim", "my", "name", "there", "zach"]
-      assert P.extract_indexes(html) == expected 
+      assert P.extract_indexes(html, stem: false) == expected 
     end
 
     test "normalize text" do
@@ -60,7 +60,7 @@ defmodule ParserTest do
       """ 
 
       expected = ["goes", "hello", "is" ,"jim", "my", "name", "there", "zach"]
-      assert P.extract_indexes(html) == expected 
+      assert P.extract_indexes(html, stem: false) == expected 
     end
   end
 end
