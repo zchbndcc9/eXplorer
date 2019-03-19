@@ -3,7 +3,7 @@ defmodule Explore.FetcherTest do
   require Explore.Fetcher, as: F
 
   test "some method without param" do
-    {status, _} = F.fetch("google.com")
+    {status, _} = F.fetch("www.google.com")
     assert status == :ok 
   end
 end
