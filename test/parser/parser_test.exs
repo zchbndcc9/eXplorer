@@ -1,6 +1,7 @@
 defmodule ParserTest do
   use ExUnit.Case, async: true
   require Explore.Parser, as: P
+  doctest P
 
   describe "Extracting urls when" do
     test "html without links results in empty list" do
