@@ -1,18 +1,19 @@
 defmodule Explore do
-  @moduledoc """
-  Documentation for Explore.
-  """
+  alias Explore
+  alias Explore.Parser
+  alias Explore.Fetcher
 
-  @doc """
-  Hello world.
+  def crawl(link) do
+    link
+    |> Fetcher.fetch()
+    |> parse(stem: true)
+  end
 
-  ## Examples
-
-      iex> Explore.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def parse({ :ok, page }, opts) do
+    { :ok, Parser.extract(page, opts) }
+  end
+  
+  def parse({ status, reason }, _) do
+    { status, reason }
   end
 end
