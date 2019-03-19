@@ -23,4 +23,16 @@ defmodule Explore.Parser do
     |> extract_urls()
     |> Enum.uniq()
   end
+
+  @doc """
+  Extracts all indexes with html and returns the list in alphebetical order
+  """
+  def extract_indexes(html) do
+    html
+    |> Floki.text(sep: " ")
+    |> String.split(" ")
+    |> Enum.map(fn term -> String.downcase(term) end)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
 end
