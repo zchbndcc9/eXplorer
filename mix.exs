@@ -23,7 +23,8 @@ defmodule Explore.MixProject do
   defp deps do
     [
       { :floki, "~> 0.20.0" },
-      { :httpoison, "~> 1.4" }
+      { :httpoison, "~> 1.4" },
+      { :stemmer, "~> 1.0" }
     ]
   end
 end
