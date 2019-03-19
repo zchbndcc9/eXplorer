@@ -24,7 +24,7 @@ defmodule Explore.Fetcher do
   
   def filter_good_pages(list) do
     list
-    |> Enum.filter(fn {status, body} -> status == :ok end)
-    |> Enum.map(fn {status, body} -> body end)
+    |> Enum.filter(fn {status, _} -> status == :ok end)
+    |> Enum.map(fn {_, body} -> body end)
   end
 end
