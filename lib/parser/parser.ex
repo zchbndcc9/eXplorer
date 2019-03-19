@@ -60,17 +60,37 @@ defmodule Explore.Parser do
   """
   def extract_indexes(html, opts \\ [stem: true]) do
     html
+    |> filter_html(["noscript", "style"]) 
     |> Floki.text(sep: " ")
     |> String.split(" ")
-    |> Enum.map(fn term -> String.downcase(term) end)
+    |> normalize_terms(opts)
+    |> Enum.sort()
+  end
+  
+  def normalize_terms(words, opts \\ [stem: true]) do
+    words
+    |> rid_punctuation()
+    |> Enum.map(fn term-> String.downcase(term) end)
     |> stem_words(opts)
     |> Enum.uniq()
-    |> Enum.sort()
+  end
+
+  def rid_punctuation(words) do
+    words
+    |> Enum.map(fn word -> Regex.run(~r/[\w\d]+/, word) end)
+    |> Enum.reject(fn word -> word === nil end)
+    |> List.flatten
   end
 
   def stem_words(html, stem: true), do: Stemmer.stem(html)
   def stem_words(html, _),          do: html
 
+  @doc """
+  Filters out the provided tags from the html
+  """
+  def filter_html(html, []),         do: html 
+  def filter_html(html, [tag | t]),  do: Floki.filter_out(filter_html(html, t), tag)
+  
   @doc """
   Extracts the title from the html
 
@@ -80,10 +100,11 @@ defmodule Explore.Parser do
     "Zach's Blogspot"
   """
   def extract_title(html) do
-    [{_, _, [title]} | _] = 
       html
       |> Floki.find("title")
-    
-    title
+      |> format_title()
   end
+
+  defp format_title([{_, _, [title]}]), do: title 
+  defp format_title([]),                do: :none
 end
