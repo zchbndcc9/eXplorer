@@ -82,6 +82,7 @@ defmodule Explore.Parser do
     |> List.flatten
   end
 
+  def stem_words(html),             do: Stemmer.stem(html)
   def stem_words(html, stem: true), do: Stemmer.stem(html)
   def stem_words(html, _),          do: html
 
