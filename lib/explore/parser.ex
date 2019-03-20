@@ -1,5 +1,5 @@
 defmodule Explore.Parser do
-
+  alias Explore.Document
   @doc """
   Extracts a list of links and indexes from html and returns a map that wraps the lists
   
@@ -12,12 +12,13 @@ defmodule Explore.Parser do
       title: "Hello there"
     }
   """
-  def extract(html, opts \\ [stem: true]) do
+  def extract(document = %Document, opts \\ [stem: true]) do
     links_task = Task.async(fn -> extract_unique_urls(html) end)
     indexes_task = Task.async(fn -> extract_indexes(html, opts) end)
     title_task = Task.async(fn -> extract_title(html) end)
 
-    %{
+    %Document{
+      document | 
       indexes: Task.await(indexes_task),
       links: Task.await(links_task),
       title: Task.await(title_task)
@@ -67,24 +68,6 @@ defmodule Explore.Parser do
     |> Enum.sort()
   end
   
-  def normalize_terms(words, opts \\ [stem: true]) do
-    words
-    |> rid_punctuation()
-    |> Enum.map(fn term-> String.downcase(term) end)
-    |> stem_words(opts)
-    |> Enum.uniq()
-  end
-
-  def rid_punctuation(words) do
-    words
-    |> Enum.map(fn word -> Regex.run(~r/[\w\d]+/, word) end)
-    |> Enum.reject(fn word -> word === nil end)
-    |> List.flatten
-  end
-
-  def stem_words(html),             do: Stemmer.stem(html)
-  def stem_words(html, stem: true), do: Stemmer.stem(html)
-  def stem_words(html, _),          do: html
 
   @doc """
   Filters out the provided tags from the html
