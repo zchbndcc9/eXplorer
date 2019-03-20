@@ -12,17 +12,21 @@ defmodule Explore.Parser do
       title: "Hello there"
     }
   """
-  def extract(document = %Document, opts \\ [stem: true]) do
-    links_task = Task.async(fn -> extract_unique_urls(html) end)
-    indexes_task = Task.async(fn -> extract_indexes(html, opts) end)
-    title_task = Task.async(fn -> extract_title(html) end)
+  def extract(doc = %Document{ status: :ok }, opts \\ [stem: true]) do
+    links_task = Task.async(fn -> extract_unique_urls(doc) end)
+    terms_task = Task.async(fn -> extract_terms(doc, opts) end)
+    title_task = Task.async(fn -> extract_title(doc) end)
 
     %Document{
-      document | 
-      indexes: Task.await(indexes_task),
+      doc | 
+      terms: Task.await(terms_task),
       links: Task.await(links_task),
       title: Task.await(title_task)
     }
+  end
+
+  def extract(doc, _) do
+    doc
   end
   
   @doc """
@@ -33,8 +37,12 @@ defmodule Explore.Parser do
     iex> Explore.Parser.extract_urls("<body><a href='google.com'><div><a href='facebook.com'></div></body>")
     ["facebook.com", "google.com"] 
   """
-  def extract_urls(html) do
-    html
+  def extract_urls(%Document{ type: :text }) do
+    [] 
+  end
+  
+  def extract_urls(%Document{ content }) do
+    content 
     |> Floki.find("a")
     |> Floki.attribute("href")
     |> Enum.sort()
@@ -48,8 +56,12 @@ defmodule Explore.Parser do
     iex> Explore.Parser.extract_unique_urls("<body><a href='google.com'></a><a href='google.com'>Google</a></body>")
     ["google.com"]
   """
-  def extract_unique_urls(html) do
-    html
+  def extract_unique_urls(%Document{ }) do
+    []
+  end
+
+  def extract_unique_urls(%Document{ content }) do
+    content 
     |> extract_urls()
     |> Enum.uniq()
   end
@@ -59,15 +71,24 @@ defmodule Explore.Parser do
 
   By default the function will stem the words, but a `stem` flag can be supplied in order to prevent the words from being stemmed
   """
-  def extract_indexes(html, opts \\ [stem: true]) do
-    html
+  def extract_terms(%Document{ type: :text, content }, opts \\ [stem: true]) do
+    content
+    |> extract_terms(opts)
+  end
+
+  def extract_terms(%Document{ content }, opts \\ [stem: true]) do
+    content 
     |> filter_html(["noscript", "style"]) 
     |> Floki.text(sep: " ")
+    |> extract_terms(opts)
+  end
+
+  def extract_terms(text, opts \\ [stem: true]) do
+    text
     |> String.split(" ")
     |> normalize_terms(opts)
     |> Enum.sort()
   end
-  
 
   @doc """
   Filters out the provided tags from the html
@@ -83,8 +104,12 @@ defmodule Explore.Parser do
     iex> Explore.Parser.extract_title("<html><title>Zach's Blogspot</title></html>")
     "Zach's Blogspot"
   """
-  def extract_title(html) do
-      html
+  def extract_title(%Document{ type: :text }) do
+    ""
+  end
+
+  def extract_title(%Document{ content }) do
+      content 
       |> Floki.find("title")
       |> format_title()
   end
