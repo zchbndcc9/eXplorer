@@ -14,7 +14,7 @@ defmodule Explore.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      applications: [:httpoison],
+      applications: [:httpoison, :gollum],
       extra_applications: [:logger]
     ]
   end
@@ -22,6 +22,7 @@ defmodule Explore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      { :gollum, "~> 0.2.2" },
       { :floki, "~> 0.20.0" },
       { :httpoison, "~> 1.4" },
       { :stemmer, "~> 1.0" }
