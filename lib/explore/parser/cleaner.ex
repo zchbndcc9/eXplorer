@@ -6,16 +6,16 @@ defmodule Explore.Parser.Cleaner do
     |> Enum.filter(fn term -> is_valid?(term) end)
   end
 
-  def split_special_terms(terms) do
-    terms
-    |> Enum.map(fn term -> String.split(term, ["-", "/"]) end)
-    |> List.flatten()
-  end
-
   def clean(term) do
     term
     |> String.trim()
     |> rid_punctuation()
+  end
+
+  def split_special_terms(terms) do
+    terms
+    |> Enum.map(fn term -> String.split(term, [".", "-", "/"]) end)
+    |> List.flatten()
   end
 
   def rid_punctuation(term) do

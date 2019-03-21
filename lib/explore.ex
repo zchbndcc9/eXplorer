@@ -5,7 +5,7 @@ defmodule Explore do
   alias Explore.Parser
   alias Explore.Fetcher
   alias Explore.Indexer
-  alias Explore.Frontier.Queue
+  alias Explore.Frontier
 
   defdelegate fetch(doc),       to: Fetcher
   defdelegate index(doc),       to: Indexer
@@ -15,15 +15,18 @@ defmodule Explore do
     Supervisor.start_link(name: Supervisor)
   end
 
-  def explore([]) do
+  def get_stats() do
     IO.puts("done")
   end
-
   def explore(link) do
     link
     |> crawl()
+    |> Frontier.add_links()
 
-    explore(Queue.pop())
+    case Frontier.empty?() do
+      true -> get_stats() 
+      false -> explore(Frontier.pop())
+    end
   end
 
   @doc """

@@ -1,9 +1,7 @@
 defmodule Explore.Indexer do
-  def index(list) when is_list(list) do
-    list        
-  end
+  alias Explore.Indexer.Manager
 
-  def index(item) do
-    item
-  end
+  defdelegate index(doc),           to: Manager
+  defdelegate get_index(),          to: Manager
+  defdelegate get_reverse_index(),  to: Manager
 end

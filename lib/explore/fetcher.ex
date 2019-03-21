@@ -1,15 +1,11 @@
 defmodule Explore.Fetcher do
   alias Explore.Document
+  alias Explore.Indexer
 
   @moduledoc """
   Fetcher is a module that performs HTTP requests to retrieve html pages from the internet
   """
-  def get_docs(list) when is_list(list) do
-    list
-    |> Enum.map(fn link -> get_doc(link) end)
-  end
-
-  def get_doc(link) do
+  def fetch(link) do
     %Document{ url: link }
     |> determine_valid_path()
     |> determine_crawlable()
@@ -17,7 +13,6 @@ defmodule Explore.Fetcher do
     |> determine_type()
     |> generate_id()
     |> check_duplicate()
-    |> store_id()
   end
 
   def determine_valid_path(doc = %Document{ url: link}) do
@@ -90,11 +85,15 @@ defmodule Explore.Fetcher do
     %Document{ doc | id: nil }
   end
 
-  def check_duplicate(doc) do
-    doc
-  end
+  def check_duplicate(doc = %Document{ id: id }) do
+    index = Indexer.get_index() 
 
-  def store_id(doc) do
-    doc
+    status = 
+      case index[id] do
+        nil -> :ok
+        _   -> :duplicate
+      end
+
+    %Document{ doc | status: status }
   end
 end
