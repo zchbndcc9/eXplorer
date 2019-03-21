@@ -11,6 +11,7 @@ defmodule Explore.Fetcher do
 
   def get_doc(link) do
     %Document{ url: link }
+    |> determine_valid_path()
     |> retrieve_robot()
     |> retrieve_page()
     |> determine_type()
@@ -19,15 +20,37 @@ defmodule Explore.Fetcher do
     |> store_id()
   end
 
-  def retrieve_robot(doc = %Document{ url: url }) do
-    status = Gollum.crawlable?("Explorer", url)
+  def determine_valid_path(doc = %Document{ url: link}) do
+    uri = URI.parse(link)
+    status = 
+      case uri.host do
+       "" -> :ok
+        _ -> :invalid
+      end
+
+    %Document{ doc | status: status }
+  end 
+
+  def retrieve_robot(doc = %Document{ status: :ok, url: url }) do
+    name = Gollum.Cache
+    host = "https://s2.smu.edu/~fmoore" 
+    status = 
+      case Gollum.Cache.fetch(host, name: name) do
+        {:error, _} -> :crawlable
+        :ok -> 
+          host
+          |> Gollum.Cache.get(name: name)
+          |> Gollum.Host.crawlable?("Explorer", url)
+      end
 
     %Document{ doc | status: status }
   end
 
   def retrieve_page(doc = %Document{ status: :crawlable, url: url }) do
+    path = "https://s2.smu.edu/~fmoore" <> url
+    
     { status, body, type } =
-      case HTTPoison.get(url) do
+      case HTTPoison.get(path) do
         {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: type}} -> {:ok, body, type}
         {:ok, %HTTPoison.Response{status_code: 404}} -> {:no_page, "Page does not exist", "none"}
         {_, _} -> {:error, "Some error occured", "none"}
@@ -40,7 +63,7 @@ defmodule Explore.Fetcher do
     doc
   end
 
-  def determine_type(doc = %Document{ type: "none" }) do
+  def determine_type(doc = %Document{ status: :uncrawlable }) do
     doc
   end
 
