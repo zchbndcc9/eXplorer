@@ -1,9 +1,16 @@
 defmodule Explore.Indexer.Manager do
+  alias Explore.Indexer.Store
   alias Explore.Document
-  alias Explore.Indexer.Index
-  alias Explore.Indexer.ReverseIndex
 
-  def index(doc = %Document{ status: :duplicate }) do
+  def index(doc = %Document{ status: :duplicate, url: url }) do
+    Store.add_to_duplicates(url)
+
+    doc
+  end
+
+  def index(doc = %Document{ type: :figure, url: url }) do
+    Store.add_to_figures(url)
+
     doc
   end
 
@@ -37,7 +44,8 @@ defmodule Explore.Indexer.Manager do
   end
 
   def add_to_index(doc = %Document{ id: id }) do
-    Index.add(id, doc)    
+    doc = Map.delete(doc, :content)
+    Store.add_to_index(id, doc)    
 
     doc
   end
@@ -45,16 +53,8 @@ defmodule Explore.Indexer.Manager do
   def add_to_reverse_index(doc = %Document{ id: id, terms: terms }) do
     terms
     |> Map.keys()
-    |> Enum.map(fn key -> ReverseIndex.add(id, key) end)
+    |> Enum.map(fn key -> Store.add_to_reverse_index(key, id) end)
 
     doc
-  end
-
-  def get_index() do
-    Index.get()
-  end
-
-  def get_reverse_index() do
-    ReverseIndex.get()
   end
 end

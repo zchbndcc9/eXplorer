@@ -1,6 +1,7 @@
 defmodule Explore.Fetcher do
   alias Explore.Document
   alias Explore.Indexer
+  alias Explore.Indexer.Store
 
   @moduledoc """
   Fetcher is a module that performs HTTP requests to retrieve html pages from the internet
@@ -29,6 +30,7 @@ defmodule Explore.Fetcher do
   def determine_crawlable(doc = %Document{ status: :ok, url: url }) do
     name = Gollum.Cache
     host = "https://s2.smu.edu/~fmoore" 
+    url = "/" <> url
     status = 
       case Gollum.Cache.fetch(host, name: name) do
         {:error, _} -> :crawlable
@@ -85,9 +87,8 @@ defmodule Explore.Fetcher do
     %Document{ doc | id: nil }
   end
 
-  def check_duplicate(doc = %Document{ id: id }) do
-    index = Indexer.get_index() 
-
+  def check_duplicate(doc = %Document{ status: :ok, id: id }) do
+    %Store{ index: index } = Indexer.get() 
     status = 
       case index[id] do
         nil -> :ok
@@ -95,5 +96,9 @@ defmodule Explore.Fetcher do
       end
 
     %Document{ doc | status: status }
+  end
+
+  def check_duplicate(doc) do
+    doc
   end
 end

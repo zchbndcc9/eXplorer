@@ -1,7 +1,6 @@
 defmodule Explore.Supervisor do
   use Supervisor
-  alias Explore.Indexer.Index
-  alias Explore.Indexer.ReverseIndex
+  alias Explore.Indexer.Store
   alias Explore.Frontier.Queue
 
   def start_link(opts) do
@@ -10,8 +9,7 @@ defmodule Explore.Supervisor do
 
   def init(:ok) do
     children = [
-      Index,
-      ReverseIndex,
+      Store,
       Queue
     ]
 

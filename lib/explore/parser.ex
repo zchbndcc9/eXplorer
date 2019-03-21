@@ -44,10 +44,6 @@ defmodule Explore.Parser do
     }
   """
   def extract(doc, opts \\ [stem: true])
-  def extract(doc = %Document{ type: :figure }, opts) do
-    doc
-  end
-
   def extract(doc = %Document{ status: :ok }, opts) do
     links_task = Task.async(fn -> extract_unique_urls(doc) end)
     terms_task = Task.async(fn -> extract_terms(doc, opts) end)
