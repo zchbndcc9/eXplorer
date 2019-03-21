@@ -12,7 +12,7 @@ defmodule Explore.Fetcher do
   def get_doc(link) do
     %Document{ url: link }
     |> determine_valid_path()
-    |> retrieve_robot()
+    |> determine_crawlable()
     |> retrieve_page()
     |> determine_type()
     |> generate_id()
@@ -24,14 +24,14 @@ defmodule Explore.Fetcher do
     uri = URI.parse(link)
     status = 
       case uri.host do
-       "" -> :ok
-        _ -> :invalid
+        nil -> :ok
+        _   -> :invalid
       end
 
     %Document{ doc | status: status }
   end 
 
-  def retrieve_robot(doc = %Document{ status: :ok, url: url }) do
+  def determine_crawlable(doc = %Document{ status: :ok, url: url }) do
     name = Gollum.Cache
     host = "https://s2.smu.edu/~fmoore" 
     status = 
@@ -46,14 +46,18 @@ defmodule Explore.Fetcher do
     %Document{ doc | status: status }
   end
 
+  def determine_crawlable(doc) do
+    doc
+  end
+
   def retrieve_page(doc = %Document{ status: :crawlable, url: url }) do
     path = "https://s2.smu.edu/~fmoore" <> url
     
     { status, body, type } =
       case HTTPoison.get(path) do
         {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: type}} -> {:ok, body, type}
-        {:ok, %HTTPoison.Response{status_code: 404}} -> {:no_page, "Page does not exist", "none"}
-        {_, _} -> {:error, "Some error occured", "none"}
+        {:ok, %HTTPoison.Response{status_code: 404}} -> {:no_page, nil, "none"}
+        {_, _} -> {:error, nil, "none"}
       end
 
     %Document{ doc | status: status, content: body, type: type }
@@ -63,18 +67,19 @@ defmodule Explore.Fetcher do
     doc
   end
 
-  def determine_type(doc = %Document{ status: :uncrawlable }) do
-    doc
-  end
-
-  def determine_type(doc = %Document{ type: type }) do
+  def determine_type(doc = %Document{ status: :ok, type: type }) do
     new_type =
       type
-      |> Enum.find(fn {key, value} -> key == "Content-Type" end)
+      |> Enum.find(fn {key, _value} -> key == "Content-Type" end)
       |> elem(1)
 
     %Document{ doc | type: new_type }
   end
+
+  def determine_type(doc) do
+    doc
+  end
+
   def generate_id(doc = %Document{ status: :ok, content: content }) do
     hash = Base.encode16(:crypto.hash(:sha512, content))
 
