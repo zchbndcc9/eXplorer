@@ -51,13 +51,13 @@ defmodule Explore.Fetcher do
   end
 
   def retrieve_page(doc = %Document{ status: :crawlable, url: url }) do
-    path = "https://s2.smu.edu/~fmoore" <> url
+    path = "https://s2.smu.edu/~fmoore" <> "/" <> url
     
     { status, body, type } =
       case HTTPoison.get(path) do
         {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: type}} -> {:ok, body, type}
-        {:ok, %HTTPoison.Response{status_code: 404}} -> {:no_page, nil, "none"}
-        {_, _} -> {:error, nil, "none"}
+        {:ok, %HTTPoison.Response{status_code: 404}} -> {:no_page, nil, nil }
+        {_, _} -> {:error, nil, nil }
       end
 
     %Document{ doc | status: status, content: body, type: type }
@@ -87,7 +87,7 @@ defmodule Explore.Fetcher do
   end
 
   def generate_id(doc) do
-    %Document{ doc | id: :none }
+    %Document{ doc | id: nil }
   end
 
   def check_duplicate(doc) do

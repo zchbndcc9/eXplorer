@@ -1,7 +1,35 @@
 defmodule Explore.Parser do
+  alias Explore.Parser.Normalizer
+  alias Explore.Parser.Cleaner
   alias Explore.Document
 
   defdelegate normalize(terms, opts), to: Normalizer
+  defdelegate clean(terms),           to: Cleaner
+
+  def parse(doc, opts \\ [stem: true])
+  def parse(doc = %Document{ status: :ok }, opts) do
+    doc
+    |> determine_parsable()
+    |> extract(opts)
+  end
+
+  def parse(doc, _) do
+    doc
+  end
+
+  def determine_parsable(doc = %Document{ type: nil }) do
+    doc
+  end
+
+  def determine_parsable(doc = %Document{ type: type }) do
+    {status, type} = 
+      case Regex.match?(~r/text/, type) do
+        true -> {:ok, type} 
+        false -> {:unparsable, :figure}
+      end
+
+    %Document{ doc | type: type, status: status }
+  end
 
   @doc """
   Extracts a list of links and indexes from html and returns a map that wraps the lists
@@ -16,6 +44,10 @@ defmodule Explore.Parser do
     }
   """
   def extract(doc, opts \\ [stem: true])
+  def extract(doc = %Document{ type: :figure }, opts) do
+    doc
+  end
+
   def extract(doc = %Document{ status: :ok }, opts) do
     links_task = Task.async(fn -> extract_unique_urls(doc) end)
     terms_task = Task.async(fn -> extract_terms(doc, opts) end)
@@ -41,10 +73,11 @@ defmodule Explore.Parser do
     iex> Explore.Parser.extract_urls("<body><a href='google.com'><div><a href='facebook.com'></div></body>")
     ["facebook.com", "google.com"] 
   """
-  def extract_urls(%Document{ type: :text }) do
+  def extract_urls(%Document{ type: "text/plain" }) do
     [] 
   end
   
+  def extract_urls(doc) 
   def extract_urls(%Document{ content: content }) do
     content 
     |> Floki.find("a")
@@ -60,14 +93,14 @@ defmodule Explore.Parser do
     iex> Explore.Parser.extract_unique_urls("<body><a href='google.com'></a><a href='google.com'>Google</a></body>")
     ["google.com"]
   """
-  def extract_unique_urls(%Document{ }) do
+  def extract_unique_urls(%Document{ type: "text/plain" }) do
     []
   end
 
-  def extract_unique_urls(%Document{ content: content }) do
-    content 
-    |> extract_urls()
-    |> Enum.uniq()
+  def extract_unique_urls(doc = %Document{}) do
+      doc
+      |> extract_urls()
+     |> Enum.uniq()
   end
 
   @doc """
@@ -76,7 +109,7 @@ defmodule Explore.Parser do
   By default the function will stem the words, but a `stem` flag can be supplied in order to prevent the words from being stemmed
   """
   def extract_terms(doc, opts \\ [stem: true])
-  def extract_terms(%Document{ type: :text, content: content }, opts) do
+  def extract_terms(%Document{ type: "text/plain", content: content }, opts) do
     content
     |> extract_terms(opts)
   end
@@ -91,8 +124,8 @@ defmodule Explore.Parser do
   def extract_terms(text, opts) do
     text
     |> String.split(" ")
+    |> clean()
     |> normalize(opts)
-    |> Enum.sort()
   end
 
   @doc """
@@ -109,7 +142,7 @@ defmodule Explore.Parser do
     iex> Explore.Parser.extract_title("<html><title>Zach's Blogspot</title></html>")
     "Zach's Blogspot"
   """
-  def extract_title(%Document{ type: :text }) do
+  def extract_title(%Document{ type: "text/plain" }) do
     ""
   end
 
