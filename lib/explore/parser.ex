@@ -1,5 +1,8 @@
 defmodule Explore.Parser do
   alias Explore.Document
+
+  defdelegate normalize(terms, opts), to: Normalizer
+
   @doc """
   Extracts a list of links and indexes from html and returns a map that wraps the lists
   
@@ -12,7 +15,8 @@ defmodule Explore.Parser do
       title: "Hello there"
     }
   """
-  def extract(doc = %Document{ status: :ok }, opts \\ [stem: true]) do
+  def extract(doc, opts \\ [stem: true])
+  def extract(doc = %Document{ status: :ok }, opts) do
     links_task = Task.async(fn -> extract_unique_urls(doc) end)
     terms_task = Task.async(fn -> extract_terms(doc, opts) end)
     title_task = Task.async(fn -> extract_title(doc) end)
@@ -41,7 +45,7 @@ defmodule Explore.Parser do
     [] 
   end
   
-  def extract_urls(%Document{ content }) do
+  def extract_urls(%Document{ content: content }) do
     content 
     |> Floki.find("a")
     |> Floki.attribute("href")
@@ -60,7 +64,7 @@ defmodule Explore.Parser do
     []
   end
 
-  def extract_unique_urls(%Document{ content }) do
+  def extract_unique_urls(%Document{ content: content }) do
     content 
     |> extract_urls()
     |> Enum.uniq()
@@ -71,22 +75,23 @@ defmodule Explore.Parser do
 
   By default the function will stem the words, but a `stem` flag can be supplied in order to prevent the words from being stemmed
   """
-  def extract_terms(%Document{ type: :text, content }, opts \\ [stem: true]) do
+  def extract_terms(doc, opts \\ [stem: true])
+  def extract_terms(%Document{ type: :text, content: content }, opts) do
     content
     |> extract_terms(opts)
   end
 
-  def extract_terms(%Document{ content }, opts \\ [stem: true]) do
+  def extract_terms(%Document{ content: content }, opts) do
     content 
     |> filter_html(["noscript", "style"]) 
     |> Floki.text(sep: " ")
     |> extract_terms(opts)
   end
 
-  def extract_terms(text, opts \\ [stem: true]) do
+  def extract_terms(text, opts) do
     text
     |> String.split(" ")
-    |> normalize_terms(opts)
+    |> normalize(opts)
     |> Enum.sort()
   end
 
@@ -108,7 +113,7 @@ defmodule Explore.Parser do
     ""
   end
 
-  def extract_title(%Document{ content }) do
+  def extract_title(%Document{ content: content }) do
       content 
       |> Floki.find("title")
       |> format_title()

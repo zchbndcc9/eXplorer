@@ -1,5 +1,7 @@
 defmodule Explore.Parser.Normalizer do
-  def normalize(words, opts \\ [stem: true]) when is_list(words) do
+  
+  def normalize(word, opts \\ [stem: true])
+  def normalize(words, opts) when is_list(words) do
     words
     |> Enum.map(fn term -> normalize(term, opts) end)
     |> Enum.reject(fn word -> word === nil end)
@@ -7,7 +9,7 @@ defmodule Explore.Parser.Normalizer do
     |> Enum.uniq()
   end
 
-  def normalize(word, opts \\ [stem: true]) do
+  def normalize(word, opts) do
     word
     |> rid_punctuation()
     |> String.downcase()

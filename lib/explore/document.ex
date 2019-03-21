@@ -7,6 +7,6 @@ defmodule Explore.Document do
     content: "",
     terms: [],
     links: [],
-    status: :initializing,
+    status: :initializing
   )
 end

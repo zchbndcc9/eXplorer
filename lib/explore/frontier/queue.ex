@@ -1,6 +1,6 @@
 defmodule Explore.Frontier.Queue do
   def start_link(_) do
-    Agent.start_link(fn -> [] end, name: __MODULE__)
+    Agent.start_link(__MODULE__, fn -> [] end, name: __MODULE__)
   end
 
   def push(link) do
@@ -8,7 +8,7 @@ defmodule Explore.Frontier.Queue do
   end
 
   def pop() do
-    Agent.get_and_update(__MODULE__, fn [link | queue]-> {link, queue})
+    Agent.get_and_update(__MODULE__, fn [link | queue]-> {link, queue} end)
   end
 
   def empty?() do
