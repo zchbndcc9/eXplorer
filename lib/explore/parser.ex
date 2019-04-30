@@ -74,11 +74,17 @@ defmodule Explore.Parser do
   end
   
   def extract_urls(doc) 
-  def extract_urls(%Document{ content: content }) do
+  def extract_urls(%Document{ content: content, url: url }) do
     content 
     |> Floki.find("a")
     |> Floki.attribute("href")
+    |> Enum.map(fn path -> format_url(url, path) end)
     |> Enum.sort()
+  end
+
+  def format_url(url, path) do
+    url = Regex.replace(~r/([a-zA-Z0-9\s_\\.\-\(\):])+(.html|.htm)$/, url, "")
+    String.trim(url) <> path
   end
 
   @doc """
