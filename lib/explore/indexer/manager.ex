@@ -1,6 +1,24 @@
 defmodule Explore.Indexer.Manager do
   alias Explore.Indexer.Store
   alias Explore.Document
+  
+  def index(doc = %Document{ status: :uncrawlable, url: url }) do
+    Store.add_to_uncrawables(url)
+
+    doc
+  end
+
+  def index(doc = %Document{ status: :invalid, url: url }) do
+    Store.add_to_invalids(url)
+
+    doc
+  end
+
+  def index(doc = %Document{ status: :no_page, url: url }) do
+    Store.add_to_no_pages(url)
+
+    doc
+  end
 
   def index(doc = %Document{ status: :duplicate, url: url }) do
     Store.add_to_duplicates(url)
