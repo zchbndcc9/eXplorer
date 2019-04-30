@@ -49,7 +49,7 @@ defmodule Explore.Fetcher do
 
   def retrieve_page(doc = %Document{ status: :crawlable, url: url }) do
     path = "https://s2.smu.edu/~fmoore" <> "/" <> url
-    
+
     { status, body, type } =
       case HTTPoison.get(path) do
         {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: type}} -> {:ok, body, type}
