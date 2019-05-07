@@ -83,7 +83,7 @@ defmodule Explore.Parser do
   end
 
   def format_url(url, path) do
-    url = Regex.replace(~r/([a-zA-Z0-9\s_\\.\-\(\):])+(.html|.htm)$/, url, "")
+    url = Regex.replace(~r/([a-zA-Z0-9\s_\\.\-\(\):])+(.html|.htm|.php)$/, url, "")
     String.trim(url) <> path
   end
 
