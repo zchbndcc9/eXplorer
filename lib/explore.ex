@@ -13,7 +13,7 @@ defmodule Explore do
   defdelegate fetch(doc),       to: Fetcher
   defdelegate index(doc),       to: Indexer
   defdelegate parse(doc, opts), to: Parser
-  defdelegate get_stats(doc),   to: Stats
+  defdelegate get_stats(),   to: Stats
 
   def start(_type, _args) do
     Supervisor.start_link(name: Supervisor)
@@ -36,7 +36,7 @@ defmodule Explore do
   def crawl(link) do
     link
     |> fetch()
-    |> parse(stem: false)
+    |> parse([stem: false])
     |> index()
   end
 end

@@ -1,4 +1,8 @@
 defmodule Explore.Stats do
+  alias Explore.Indexer
+  alias Explore.Indexer.Store
+  alias Explore.Document
+
   def get_stats() do
     file = File.open!("stats.txt", [:utf8, :write])
 
