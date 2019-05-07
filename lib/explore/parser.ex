@@ -144,8 +144,8 @@ defmodule Explore.Parser do
     iex> Explore.Parser.extract_title("<html><title>Zach's Blogspot</title></html>")
     "Zach's Blogspot"
   """
-  def extract_title(%Document{ type: "text/plain" }) do
-    ""
+  def extract_title(%Document{ type: "text/plain", url: url }) do
+    url
   end
 
   def extract_title(%Document{ content: content }) do
