@@ -36,7 +36,7 @@ defmodule Explore do
   def crawl(link) do
     link
     |> fetch()
-    |> parse(stem: true)
+    |> parse(stem: false)
     |> index()
   end
 end
